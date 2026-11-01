@@ -408,3 +408,10 @@ button { cursor: pointer; }
 .linea-municipio.apagada { opacity: .25; }
 .barra-grupo { fill: var(--lavanda-fuerte); } .barra-grupo.base { fill: var(--verde-fuerte); }
 .leyenda input[type="radio"] { accent-color: var(--vivo); margin-right: 6px; }
+
+/* Enlace a fuentes descartadas o de semáforo rojo: pide una clave antes de abrir. */
+.clave { display: grid; gap: 12px; max-width: 340px; }
+.clave p { font-size: 14px; line-height: 1.5; }
+.clave label { display: grid; gap: 6px; font-size: 13px; font-weight: 600; }
+.clave input { padding: 9px 12px; border: 1px solid var(--regla); border-radius: 3px; background: var(--papel); font-size: 15px; color: var(--tinta); }
+.clave-acciones { display: flex; gap: 22px; }

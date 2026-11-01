@@ -285,6 +285,37 @@ export function NoMostramos({ libro, indice, pliego }) {
 
 export const VISTAS = { municipios: Municipios, paradas: Paradas, limites: Limites, catalogo: Catalogo, fichas: Fichas, noMostramos: NoMostramos }
 
+// Las fuentes descartadas o de semáforo rojo piden una clave antes de abrir su enlace.
+// Es una fricción para no llegar por descuido, no una protección: el enlace y el hash viajan en el JavaScript de la página.
+const HASH_CLAVE = '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4'
+export const esProtegida = datos => datos.estado === 'descartada' || datos.semaforo === 'rojo'
+
+async function hashDe(texto) {
+  const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(texto))
+  return [...new Uint8Array(bytes)].map(byte => byte.toString(16).padStart(2, '0')).join('')
+}
+
+function EnlaceProtegido({ url }) {
+  const [abierto, setAbierto] = useState(false)
+  const [clave, setClave] = useState('')
+  const [error, setError] = useState(null)
+  async function enviar(evento) {
+    evento.preventDefault()
+    try {
+      if (await hashDe(clave) !== HASH_CLAVE) { setError('Clave incorrecta.'); return }
+    } catch { setError('Este navegador no permite comprobar la clave aquí.'); return }
+    setError(null); setClave(''); setAbierto(false)
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }
+  if (!abierto) return <button type="button" className="enlace" onClick={() => setAbierto(true)}>Abrir la fuente original (pide clave)</button>
+  return <form className="clave" onSubmit={enviar}>
+    <p>Esta fuente se descartó o puede traer datos de personas. Escribe la clave para abrir su enlace.</p>
+    <label>Clave<input type="password" value={clave} onChange={evento => { setClave(evento.target.value); setError(null) }} autoFocus autoComplete="off" /></label>
+    {error && <p className="errata" role="alert">{error}</p>}
+    <div className="clave-acciones"><button type="submit" className="enlace">Abrir</button><button type="button" className="enlace" onClick={() => { setAbierto(false); setClave(''); setError(null) }}>Cancelar</button></div>
+  </form>
+}
+
 export function FichaFuente({ id, registro, onCerrar }) {
   const datos = ficha(id, registro)
   return <aside className="cajon-ficha" role="dialog" aria-modal="false" aria-labelledby="ficha-titulo">
@@ -303,7 +334,9 @@ export function FichaFuente({ id, registro, onCerrar }) {
         {datos.limites && <><dt>Límites</dt><dd>{datos.limites}</dd></>}
         <dt>Ficha</dt><dd><code>{datos.catalogo}</code></dd>
       </dl>
-      {datos.documentacion && <a className="enlace" href={datos.documentacion} target="_blank" rel="noreferrer">Abrir la fuente original</a>}
+      {datos.documentacion && (esProtegida(datos)
+        ? <EnlaceProtegido url={datos.documentacion} />
+        : <a className="enlace" href={datos.documentacion} target="_blank" rel="noreferrer">Abrir la fuente original</a>)}
     </> : <p>No hay ficha para «{id}» en ningún catálogo.</p>}
   </aside>
 }
