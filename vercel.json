@@ -5,7 +5,15 @@
     },
     "api/live-traffic.js": {
       "includeFiles": "public/data/municipalities.geojson"
+    },
+    "api/live-air.js": {
+      "includeFiles": "public/data/municipalities.geojson"
     }
   },
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
 }

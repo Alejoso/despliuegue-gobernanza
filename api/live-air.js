@@ -1,3 +1,4 @@
+import { loadMunicipalities, municipalityCodeAt } from './_geo.js'
 import { failureReason, getFromUpstream, isoNow, methodGuard, unavailable } from './_upstream.js'
 
 const SOURCE = 'HSY Ilmanlaatu_nyt (air quality index, measuring stations)'
@@ -18,13 +19,14 @@ export default async function handler(request, response) {
   if (methodGuard(request, response, SOURCE)) return
   let retrievedAt = isoNow()
   try {
-    const document = await getFromUpstream(URL_AIR)
+    const [document, municipalities] = await Promise.all([getFromUpstream(URL_AIR), loadMunicipalities()])
     retrievedAt = isoNow()
     const stations = (document.features || []).map(feature => {
       const p = feature.properties || {}
       const [lon, lat] = feature.geometry?.coordinates || []
       return { id: p.Mittausaseman_numero, name: p.Mittausasema, address: p.Mittausaseman_osoite, index: Number.isFinite(p.Ilmanlaatuindeksi) ? p.Ilmanlaatuindeksi : null,
-        observed_label: p.Aika || null, observed_at: observedAt(p.Aika), lon, lat }
+        observed_label: p.Aika || null, observed_at: observedAt(p.Aika), lon, lat,
+        municipality_code: municipalityCodeAt(municipalities, lon, lat) }
     }).filter(station => Number.isFinite(station.lon) && Number.isFinite(station.lat))
     if (!stations.length) return unavailable(response, SOURCE, { reason: 'upstream_empty', httpStatus: 200, retrievedAt })
     response.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120')

@@ -8,6 +8,7 @@ const NOMBRE_MUNICIPIO = { '091': 'Helsinki', '049': 'Espoo', '092': 'Vantaa', '
 const ORDEN = ['091', '049', '092', '235']
 const decimal = (valor, cifras = 1) => valor.toLocaleString('es-ES', { minimumFractionDigits: cifras, maximumFractionDigits: cifras })
 const porcentaje = valor => `${decimal(valor)} %`
+const lugar = codigo => (codigo ? NOMBRE_MUNICIPIO[codigo] : 'fuera de los cuatro municipios')
 const sinMapa = libro => <Placa libro={libro} gris rotulo="Sin límites municipales"><p className="placa-grande">No se pudieron leer los límites del lago.</p></Placa>
 
 // Los tres estados de un archivo del lago: cargando, error o datos.
@@ -235,8 +236,8 @@ export function Ahora({ libro, indice, pliego, lago }) {
   const maxFlujo = Math.max(...(trafico.datos?.stations || []).map(s => s.vehicles_per_hour), 1)
   const maxIndice = Math.max(...(aire.datos?.stations || []).map(s => s.index ?? 0), 1)
   const valor = capa === 'aire'
-    ? e => e.index == null ? null : { radio: 9, color: mezcla(e.index / maxIndice), titulo: `${e.name}: índice ${e.index}` }
-    : e => ({ radio: 3 + 7 * Math.sqrt(e.vehicles_per_hour / maxFlujo), color: 'var(--azul-fuerte)', titulo: `${e.name}: ${numero(e.vehicles_per_hour)} vehículos en la última hora` })
+    ? e => e.index == null ? null : { radio: 9, color: mezcla(e.index / maxIndice), titulo: `${e.name} (${lugar(e.municipality_code)}): índice ${e.index}` }
+    : e => ({ radio: 3 + 7 * Math.sqrt(e.vehicles_per_hour / maxFlujo), color: 'var(--azul-fuerte)', titulo: `${e.name} (${lugar(e.municipality_code)}): ${numero(e.vehicles_per_hour)} vehículos en la última hora` })
   const notas = [{ detalle: `Se consulta al abrir la página y cada minuto; la hora de cada dato es la de la fuente.`, fuente: 'fmi-weather' }, { fuente: 'hsy-air-quality-now' }, { fuente: 'digitraffic-road-tms' }, { fuente: 'digitraffic-rail' }]
   return <Pliego libro={libro} indice={indice} titulo={pliego.titulo} notas={notas}
     figura={<>
@@ -250,13 +251,13 @@ export function Ahora({ libro, indice, pliego, lago }) {
     <EstadoVivo vivo={clima} nombre="el tiempo de FMI" />
     {clima.estado === 'vivo' && <>
       <p className="cifra-grande">{decimal(clima.datos.observations.temperature_c)} °C</p>
-      <p className="cifra-texto">en Kaisaniemi, centro de Helsinki, a las {horaHelsinki(clima.datos.observed_at)}<Ref n={1} />. Viento {decimal(clima.datos.observations.wind_ms)} m/s{clima.datos.observations.humidity_pct != null && <>, humedad {numero(clima.datos.observations.humidity_pct)} %</>}{clima.datos.observations.rain_mm_1h != null && <>, lluvia de la última hora {decimal(clima.datos.observations.rain_mm_1h)} mm</>}.</p>
+      <p className="cifra-texto">en Kaisaniemi, municipio de Helsinki (091), a las {horaHelsinki(clima.datos.observed_at)}<Ref n={1} />. Viento {decimal(clima.datos.observations.wind_ms)} m/s{clima.datos.observations.humidity_pct != null && <>, humedad {numero(clima.datos.observations.humidity_pct)} %</>}{clima.datos.observations.rain_mm_1h != null && <>, lluvia de la última hora {decimal(clima.datos.observations.rain_mm_1h)} mm</>}.</p>
     </>}
     <h3 className="subtitulo">Aire<Ref n={2} /></h3>
     <EstadoVivo vivo={aire} nombre="la red de calidad del aire de HSY" />
     {aire.estado === 'vivo' && <table className="barras compacta" aria-label="Índice de calidad del aire por estación"><tbody>{[...aire.datos.stations].sort((a, b) => (b.index ?? -1) - (a.index ?? -1)).map(s => <tr key={s.id}>
-      <th scope="row">{s.name}</th><td className="valor">{s.index ?? '—'}</td></tr>)}</tbody></table>}
-    {aire.estado === 'vivo' && <p className="lectura-texto tenue">Índice de calidad del aire de HSY a las {horaHelsinki(aire.datos.observed_at)}: un número menor es mejor aire. Mide cada estación, no tu calle.</p>}
+      <th scope="row">{s.name}<small className="tenue"> · {lugar(s.municipality_code)}</small></th><td className="valor">{s.index ?? '—'}</td></tr>)}</tbody></table>}
+    {aire.estado === 'vivo' && <p className="lectura-texto tenue">Índice de calidad del aire de HSY a las {horaHelsinki(aire.datos.observed_at)}: un número menor es mejor aire. Cada estación lleva el municipio donde está; mide ese punto, no tu calle.{aire.datos.stations.some(s => !s.municipality_code) && <> {numero(aire.datos.stations.filter(s => !s.municipality_code).length)} de las {numero(aire.datos.station_count)} estaciones están fuera de los cuatro municipios.</>}</p>}
     <h3 className="subtitulo">Carreteras<Ref n={3} /></h3>
     <EstadoVivo vivo={trafico} nombre="las estaciones de tráfico de Digitraffic" />
     {trafico.estado === 'vivo' && <>
@@ -264,7 +265,7 @@ export function Ahora({ libro, indice, pliego, lago }) {
         <th scope="row">{NOMBRE_MUNICIPIO[codigo]}</th><td className="valor ancho">{numero(trafico.datos.by_municipality[codigo].vehicles_per_hour)} veh/h</td><td className="valor tenue">{numero(trafico.datos.by_municipality[codigo].stations)} est.</td></tr>)}</tbody></table>
       <p className="lectura-texto tenue">Es la suma de las {numero(trafico.datos.station_count)} estaciones que miden en autopistas y carreteras estatales, no el tráfico total de la ciudad. No incluye calles municipales. Actualizado a las {horaHelsinki(trafico.datos.data_updated)}.</p>
     </>}
-    <h3 className="subtitulo">Trenes desde la estación central<Ref n={4} /></h3>
+    <h3 className="subtitulo">Trenes desde la estación central de Helsinki (091)<Ref n={4} /></h3>
     <EstadoVivo vivo={trenes} nombre="los trenes de Digitraffic" />
     {trenes.estado === 'vivo' && <>
       <table className="barras compacta" aria-label="Próximas salidas desde Helsinki Central"><tbody>{trenes.datos.departures.map(s => <tr key={`${s.train}-${s.scheduled}`}>

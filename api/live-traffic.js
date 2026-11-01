@@ -1,23 +1,10 @@
-import { readFile } from 'node:fs/promises'
-import path from 'node:path'
+import { loadMunicipalities, municipalityCodeAt } from './_geo.js'
 import { failureReason, getFromUpstream, isoNow, methodGuard, unavailable } from './_upstream.js'
 
 const SOURCE = 'Fintraffic Digitraffic — road traffic measurement stations (TMS)'
 const BASE = 'https://tie.digitraffic.fi/api/tms/v1/stations'
 const HEADERS = { 'Digitraffic-User': 'CerebroHelsinki/EAFIT', 'Accept-Encoding': 'gzip' }
 const MAX_AGE_MS = 3 * 3_600_000
-let municipalities
-
-const inRing = (lon, lat, ring) => {
-  let inside = false
-  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-    const [xi, yi] = ring[i], [xj, yj] = ring[j]
-    if ((yi > lat) !== (yj > lat) && lon < ((xj - xi) * (lat - yi)) / (yj - yi) + xi) inside = !inside
-  }
-  return inside
-}
-const inGeometry = (lon, lat, geometry) => (geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates)
-  .some(([outer, ...holes]) => inRing(lon, lat, outer) && !holes.some(hole => inRing(lon, lat, hole)))
 
 // Sensor names are Finnish: OHITUKSET = vehicles passing, KESKINOPEUS = mean speed, 60MIN = last full hour, SUUNTA1/2 = direction.
 const sensor = (values, name) => values.find(item => item.name === name)
@@ -26,7 +13,7 @@ export default async function handler(request, response) {
   if (methodGuard(request, response, SOURCE)) return
   let retrievedAt = isoNow()
   try {
-    municipalities ||= JSON.parse(await readFile(path.join(process.cwd(), 'public', 'data', 'municipalities.geojson'), 'utf8'))
+    const municipalities = await loadMunicipalities()
     const [stationList, measurements] = await Promise.all([
       getFromUpstream(BASE, { headers: HEADERS }), getFromUpstream(`${BASE}/data`, { headers: HEADERS, maxBytes: 15_000_000 })])
     retrievedAt = isoNow()
@@ -34,8 +21,8 @@ export default async function handler(request, response) {
     for (const feature of stationList.features || []) {
       if (feature.properties?.collectionStatus !== 'GATHERING') continue
       const [lon, lat] = feature.geometry?.coordinates || []
-      const home = municipalities.features.find(item => inGeometry(lon, lat, item.geometry))
-      if (home) located.set(feature.id, { name: feature.properties.name, lon, lat, municipality_code: home.properties.municipality_code })
+      const code = municipalityCodeAt(municipalities, lon, lat)
+      if (code) located.set(feature.id, { name: feature.properties.name, lon, lat, municipality_code: code })
     }
     const stations = []
     for (const item of measurements.stations || []) {

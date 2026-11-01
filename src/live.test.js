@@ -26,16 +26,18 @@ async function withFetch(routes, run) {
 }
 const call = async (handler, method = 'GET') => { const response = new Capture(); await handler({ method, query: {} }, response); return response }
 
-const airFeature = (id, index, label = '30.10.2026 klo 20') => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [24.9 + id / 100, 60.2] },
+const airFeature = (id, index, label = '30.10.2026 klo 20', coordinates = [24.9 + id / 100, 60.2]) => ({ type: 'Feature', geometry: { type: 'Point', coordinates },
   properties: { Mittausasema: `Station ${id}`, Aika: label, Ilmanlaatuindeksi: index, Mittausaseman_osoite: 'Somewhere 1', Mittausaseman_numero: id } })
 
 test('HSY air proxy returns stations with the source hour and converts it to an instant', async () => {
-  const response = await withFetch({ 'kartta.hsy.fi': { features: [airFeature(1, 10), airFeature(2, null)] } }, () => call(airHandler))
+  const response = await withFetch({ 'kartta.hsy.fi': { features: [airFeature(1, 10), airFeature(2, null), airFeature(3, 12, undefined, [24.95, 60.17]), airFeature(4, 5, undefined, [25.1, 60.98])] } }, () => call(airHandler))
   assert.equal(response.statusCode, 200)
   assert.equal(response.body.status, 'live')
-  assert.equal(response.body.station_count, 2)
+  assert.equal(response.body.station_count, 4)
   assert.equal(response.body.stations[0].observed_at, '2026-10-30T18:00:00.000Z')
   assert.equal(response.body.stations[1].index, null)
+  assert.equal(response.body.stations[2].municipality_code, '091')
+  assert.equal(response.body.stations[3].municipality_code, null)
 })
 
 test('HSY air proxy reports a failed source as unavailable and never as an empty reading', async () => {
