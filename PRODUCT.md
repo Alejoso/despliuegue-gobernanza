@@ -44,13 +44,13 @@ Cada cifra dice de dónde salió, qué periodo cubre y cuándo se probó, a un c
 - Ninguna cifra se publica si no sale del lago y pasa por `verificar.py`. Nada de cifras escritas a mano.
 - No se muestran: edificios con dirección, empresas individuales, celdas de empleo con 1–2 empleos, contactos de Service Map ni Open311.
 - El perfil del usuario (sector, educación, lenguas) no se guarda en ningún servidor ni en almacenamiento persistente.
-- **Sin decidir:** fuentes para salario por ocupación, empleo por lengua materna, vacantes e innovación. No están sondeadas y P3 depende de ellas.
+- **Huecos que siguen abiertos (2026-11-03):** salario por zona u ocupación, empleo por lengua materna o por municipio, vacantes e innovación. Se integró salario de la región de Uusimaa, alquiler por ciudad y empleo por nacionalidad en Uusimaa como sustitutos parciales.
 
 ## Evidence on Hand
 
-- **Ingerido:** límites municipales (Statistics Finland 2025), 6.027 paradas HSL y GTFS-Realtime (`public/data/`).
-- **Catalogado y probado, sin ingerir:** Paavo (167 áreas postales), rejilla de empleo HSY 2024, PRH/YTJ (solo conteos), cobertura del suelo HSY 2016–2024, edificios HSY (solo agregados), Overture buildings, Vipunen, stat.hel.fi. Ver `catalogo/`, `docs/catalogo/fuentes.json` y `Context-docs/informe-datos-gemelo-digital.pdf`.
-- **Ausente (no inventar):** salario por zona u ocupación, empleo o ingreso por origen, vacantes, indicadores de innovación o I+D.
+- **Integrado (2026-11-03):** 15 fuentes; 10 en el lago (`public/data/`) y 5 en vivo. El detalle está en `README.md` y `docs/catalogo/fuentes.json`.
+- **Catalogado y sin ingerir:** ver `docs/fuentes-por-consultar.md` y `docs/registro-integracion.md`.
+- **Ausente (no inventar):** salario por zona u ocupación, empleo o ingreso por lengua materna, vacantes, indicadores de innovación o I+D.
 
 ## Product Principles
 

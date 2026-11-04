@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Prueba deck.gl</title>
+<style>html,body{margin:0;height:100%;overflow:hidden;background:#f4f1ea}</style>
+<script src="https://unpkg.com/deck.gl@9.4.1/dist.min.js"></script></head>
+<body>
+<script type="module">
+import { RUTA, CENTRO, escala, colorDe, alturaDe, medirFps, puntoDe } from './comun.js'
+const { Deck, GeoJsonLayer, MapView } = deck
+window.addEventListener('error', e => { window.__error = String(e.message) })
+window.addEventListener('unhandledrejection', e => { window.__error = String(e.reason) })
+const marca = m => { window.__paso = m }
+const t0 = performance.now()
+const datos = await (await fetch(RUTA)).json()
+const tDatos = performance.now()
+const e = escala(datos.features)
+const capa = extruida => new GeoJsonLayer({ id: 'a', data: datos, pickable: true, filled: true, stroked: false, extruded: extruida,
+  getFillColor: f => f.properties.income_mean == null ? [230, 226, 217] : colorDe(e, f.properties.income_mean),
+  getElevation: f => f.properties.income_mean == null ? 0 : alturaDe(e, f.properties.income_mean), updateTriggers: { getElevation: extruida } })
+const vista = (pitch, bearing) => ({ ...CENTRO, zoom: 9, pitch, bearing })
+let avisar = null
+const siguiente = () => new Promise(r => { avisar = r })
+const primero = siguiente()
+const d = new Deck({ parent: document.body, width: '100%', height: '100%', controller: true, views: new MapView({ repeat: false }), initialViewState: vista(0, 0), layers: [capa(false)],
+  deviceProps: { webgl: { preserveDrawingBuffer: true } }, onAfterRender: () => { if (avisar && d.layerManager?.getLayers().every(l => l.isLoaded)) { const r = avisar; avisar = null; r() } } })
+await primero
+const tDibujo = performance.now()
+marca('2d')
+await new Promise(r => setTimeout(r, 300)) // justo tras el primer dibujo pickObject aún no devuelve nada
+const [x, y] = d.getViewports()[0].project(puntoDe(datos.features, '00100'))
+const elegido = d.pickObject({ x, y, radius: 1 })
+const seleccion = elegido?.object?.properties?.postal_code
+const t3d = performance.now()
+const dibujado = siguiente()
+d.setProps({ layers: [capa(true)], initialViewState: vista(52, -12) })
+await dibujado
+const t3dFin = performance.now()
+marca('3d')
+let g = -12, girando = true
+const giro = () => { g += 0.5; d.setProps({ initialViewState: vista(52, g) }); if (girando) requestAnimationFrame(giro) }; giro()
+const fps = await medirFps(); girando = false
+marca('fps')
+d.setProps({ initialViewState: vista(52, -12) })
+window.__medida = { herramienta: 'deck.gl', datos_ms: Math.round(tDatos - t0), dibujo_ms: Math.round(tDibujo - tDatos), paso_3d_ms: Math.round(t3dFin - t3d), fps_giro_3d: fps, seleccion_00100: seleccion, areas: datos.features.length }
+</script></body></html>

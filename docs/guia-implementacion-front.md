@@ -281,13 +281,11 @@ Al terminar:
 | Prioridad | Tarea | Notas |
 |---|---|---|
 | Alta | **Ver los mapas de áreas en un navegador real** (Habitar 1, Investigar 1, Aprender 1 y el botón 3D) | No se pudo verificar visualmente el 2026-10-27; ver `registro-integracion.md` |
-| Alta | **Nombres del grupo** en el pie (`App.jsx`, «Grupo: nombres por confirmar») | Lo exige la rúbrica |
 | Alta | Refrescar GTFS antes del 16 nov | §8 |
 | Alta | Rastrear las fuentes de P1 y P3 | `fuentes-por-consultar.md` §1 |
 | Media | PRH (conteos por sector), cobertura del suelo y Vipunen | Reclamar en `registro-integracion.md` |
 | Media | «Mi perfil» (carné: sector, educación, lenguas) que resalte lo propio en las figuras | Está en el brief y **no está implementado**. Solo URL y memoria. |
 | Media | Unificar los catálogos | §8 |
-| Media | Desplegar en Vercel y probar en un teléfono real | Piso técnico |
 | Media | Cierre de impeccable: revisión final y `DESIGN.md` | Con la skill `impeccable` (`/impeccable document`) |
 | Baja | Separar `run.py` en `sources/`, `transform/` y `publish/` | Cuando entren más fuentes |
 | Baja | Partir el bundle de MapLibre (más de 1 MB) con `import()` dinámico | Aviso de Vite, no bloquea |

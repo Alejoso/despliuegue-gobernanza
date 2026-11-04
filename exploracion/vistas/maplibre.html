@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Prueba MapLibre</title>
+<style>html,body,#m{margin:0;height:100%;background:#f4f1ea}</style></head>
+<body><div id="m"></div>
+<script type="module">
+import * as maplibregl from 'maplibre-gl'
+import 'maplibre-gl/dist/maplibre-gl.css'
+import worker from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
+import { RUTA, CENTRO, ALTURA_MAX, escala, medirFps, puntoDe } from './comun.js'
+maplibregl.setWorkerUrl(worker)
+const t0 = performance.now()
+const datos = await (await fetch(RUTA)).json()
+const tDatos = performance.now()
+const e = escala(datos.features)
+// Espera a que el mapa termine de dibujar, sin depender de un evento que quizá ya pasó.
+const quieto = async () => { map.triggerRepaint(); do { await new Promise(r => requestAnimationFrame(r)) } while (!map.loaded() || !map.isSourceLoaded('a')) }
+const rgb = c => `rgb(${c.join(',')})`
+const num = ['to-number', ['get', 'income_mean'], 0]
+const color = ['step', num, rgb(e.colores[0]), ...e.cortes.flatMap((c, i) => [c, rgb(e.colores[i + 1])])]
+const map = new maplibregl.Map({ container: 'm', center: [CENTRO.longitude, CENTRO.latitude], zoom: 9, pitch: 0, canvasContextAttributes: { preserveDrawingBuffer: true },
+  style: { version: 8, sources: {}, layers: [{ id: 'papel', type: 'background', paint: { 'background-color': '#f4f1ea' } }] } })
+await map.once('load')
+map.addSource('a', { type: 'geojson', data: datos, promoteId: 'postal_code' })
+map.addLayer({ id: 'r', type: 'fill', source: 'a', paint: { 'fill-color': ['case', ['==', ['get', 'income_mean'], null], '#e6e2d9', color] } })
+await quieto()
+const tDibujo = performance.now()
+const p = map.project(puntoDe(datos.features, '00100'))
+const seleccion = map.queryRenderedFeatures(p, { layers: ['r'] })[0]?.id
+map.addLayer({ id: 'x', type: 'fill-extrusion', source: 'a', filter: ['!=', ['get', 'income_mean'], null], paint: { 'fill-extrusion-color': color, 'fill-extrusion-height': ['*', ALTURA_MAX, ['/', ['-', num, e.min], e.max - e.min]] } })
+map.jumpTo({ pitch: 52, bearing: -12 })
+const t3d = performance.now(); await quieto(); const t3dFin = performance.now()
+let g = -12; const giro = () => { g += 0.5; map.setBearing(g); if (girando) requestAnimationFrame(giro) }; let girando = true; giro()
+const fps = await medirFps(); girando = false
+map.jumpTo({ bearing: -12 })
+window.__medida = { herramienta: 'MapLibre', datos_ms: Math.round(tDatos - t0), dibujo_ms: Math.round(tDibujo - tDatos), paso_3d_ms: Math.round(t3dFin - t3d), fps_giro_3d: fps, seleccion_00100: seleccion, areas: datos.features.length }
+</script></body></html>

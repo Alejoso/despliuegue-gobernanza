@@ -107,7 +107,7 @@ export function App() {
       </main>
       <footer className="colofon">
         <span>Un proyecto sobre migración, ciudad y posibilidades · Taller de Datos, EAFIT 2026-2</span>
-        <span>Grupo: nombres por confirmar</span>
+        <span>Grupo: Juan Esteban Trujillo Montes · Andrés Pérez Quinchía · Simón Sloan García · Alejandro Tirado Ramirez</span>
       </footer>
       {ficha && <FichaFuente id={ficha} registro={lago.registro || []} onCerrar={() => setFicha(null)} />}
     </div>
