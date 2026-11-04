@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-27T22:33:39.661474+00:00",
+  "generated_at": "2026-11-04T04:05:49.545293+00:00",
   "status": "partial",
   "counts": {
     "source_record_count": 8389,
@@ -46,9 +46,9 @@
     "fi-municipal-boundaries": "integrated",
     "hsl-gtfs-stops": "integrated",
     "hsl-gtfs-realtime-vehicles": "integrated",
-    "helsinki-3d-model": "integrated",
+    "helsinki-3d-model": "discarded",
     "helsinki-service-map": "candidate",
-    "osm-basemap": "integrated",
+    "osm-basemap": "discarded",
     "osm-building-footprints": "failed",
     "stat-fi-postal-areas-paavo": "integrated",
     "statfin-population-11ra": "integrated"

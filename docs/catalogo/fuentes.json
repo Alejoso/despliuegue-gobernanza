@@ -292,10 +292,10 @@
       "llave": "ninguna",
       "personas": "No.",
       "proteccion": "Ninguna.",
-      "estado": "integrada",
+      "estado": "descartada",
       "semaforo": "amarillo",
       "uso_potencial": "Vista 3D de Helsinki.",
-      "razon": "Hallazgo: el iframe de src/main.jsx apunta a https://kartta.hel.fi/3d/, que no respondió desde Colombia (timeout). Si la presentación en clase se hace desde Colombia, la pestaña 3D puede quedar vacía. Queda integrada pero en amarillo hasta probar desde el teléfono y la red de la universidad.",
+      "razon": "Hallazgo: el iframe de src/main.jsx apunta a https://kartta.hel.fi/3d/, que no respondió desde Colombia (timeout). Si la presentación en clase se hace desde Colombia, la pestaña 3D puede quedar vacía. Queda integrada pero en amarillo hasta probar desde el teléfono y la red de la universidad. Corrección 2026-11-03: el front actual ya no embebe este visor; el 3D sale de extruir las áreas de Paavo.",
       "prueba": {
         "url": "https://kartta.hel.fi/3d/"
       },
@@ -412,10 +412,10 @@
       "llave": "ninguna",
       "personas": "No.",
       "proteccion": "Respetar la política de uso de teselas (servicio best-effort).",
-      "estado": "integrada",
+      "estado": "descartada",
       "semaforo": "verde",
       "uso_potencial": "Mapa base.",
-      "razon": "Solo fondo visual; ninguna cifra del sistema sale de aquí.",
+      "razon": "Solo fondo visual; ninguna cifra del sistema sale de aquí. Corrección 2026-11-03: el front actual dibuja los mapas sin teselas de fondo; ya no se usa.",
       "prueba": {
         "url": "https://tile.openstreetmap.org/10/583/296.png"
       },

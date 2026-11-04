@@ -68,7 +68,7 @@ test('HSL static GTFS snapshot contains unique in-area boarding stops with valid
 
 test('source registry is complete and missing urban layers have explicit non-success states', async () => {
   const registry = await readJson('../public/data/sources.json')
-  const acceptedStatuses = new Set(['integrated', 'candidate', 'failed', 'not_available', 'pending_integration', 'partial_coverage', 'stale', 'unavailable'])
+  const acceptedStatuses = new Set(['integrated', 'candidate', 'discarded', 'failed', 'not_available', 'pending_integration', 'partial_coverage', 'stale', 'unavailable'])
   const evidenceTypes = new Set(['observed', 'derived', 'estimated', 'modelled', 'proxy', 'declared'])
   for (const source of registry.sources) {
     for (const field of ['dataset_name', 'provider', 'url', 'consulted_at', 'period_covered', 'geographic_coverage', 'license', 'evidence_type', 'confidence', 'transformation', 'limitations', 'integration_status']) {
@@ -78,7 +78,7 @@ test('source registry is complete and missing urban layers have explicit non-suc
     assert.ok(evidenceTypes.has(source.evidence_type))
     assert.ok(acceptedStatuses.has(source.integration_status))
   }
-  assert.equal(registry.sources.find(source => source.id === 'helsinki-3d-model').integration_status, 'integrated')
+  for (const id of ['helsinki-3d-model', 'osm-basemap']) assert.equal(registry.sources.find(source => source.id === id).integration_status, 'discarded')
   const realtime = registry.sources.find(source => source.id === 'hsl-gtfs-realtime-vehicles')
   assert.equal(realtime.integration_status, 'integrated')
   assert.equal(registry.sources.find(source => source.id === 'osm-building-footprints').integration_status, 'failed')

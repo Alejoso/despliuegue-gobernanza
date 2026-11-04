@@ -61,6 +61,10 @@ def refresh_sources() -> list[str]:
             body = fetch_bytes(url, limit=20_000_000)
             json.loads(body)
             target.write_bytes(body)
+            (METADATA / "fi-municipal-boundaries.json").write_text(json.dumps({
+                "source_id": "fi-municipal-boundaries", "url": url, "retrieved_at": dt.datetime.now(dt.timezone.utc).isoformat(),
+                "raw_file": "data/raw/municipalities.geojson", "bytes": len(body), "sha256": hashlib.sha256(body).hexdigest(),
+            }, indent=2) + "\n", encoding="utf-8")
         except Exception as error:  # preserve latest known-good input
             failures.append(f"{url}: {type(error).__name__}: {error}")
     try:
@@ -244,7 +248,15 @@ def normalize_stops(boundaries: dict) -> tuple[dict, dict]:
     }
 
 
+def retrieval_dates() -> dict:
+    """The probe date shown to users is when the input was downloaded, never when the ETL ran."""
+    def date_from(name: str) -> str:
+        return json.loads((METADATA / name).read_text(encoding="utf-8"))["retrieved_at"][:10]
+    return {"boundaries": date_from("fi-municipal-boundaries.json"), "stops": date_from("hsl_gtfs_archive.json"), "realtime": date_from("hsl_gtfsrt_probe.json")}
+
+
 def source_registry(consulted_at: str, boundaries_sha: str, stops_sha: str, counts: dict, refresh_failures: list[str]) -> dict:
+    dates = retrieval_dates()
     probe = None
     try:
         probe = json.loads((METADATA / "hsl_gtfsrt_probe.json").read_text(encoding="utf-8"))
@@ -260,13 +272,13 @@ def source_registry(consulted_at: str, boundaries_sha: str, stops_sha: str, coun
     sources = [
         {"id": "fi-municipal-boundaries", "dataset_name": "Kunnat 2025 (1:1,000,000)", "provider": "Statistics Finland",
          "url": "https://stat.fi/en/services/statistical-data-services/geographic-data/statistical-areas/municipality-based-statistical-units",
-         "resource_url": BOUNDARY_URL, "consulted_at": consulted_at, "period_covered": "Municipal division reference year 2025",
+         "resource_url": BOUNDARY_URL, "consulted_at": dates["boundaries"], "period_covered": "Municipal division reference year 2025",
          "geographic_coverage": "Helsinki (091), Espoo (049), Vantaa (092), Kauniainen (235)", "license": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
          "evidence_type": "observed", "confidence": "high", "transformation": "Official polygons filtered by municipal code and requested in EPSG:4326; four municipality names normalized to English display names.",
          "limitations": "This is a 1:1,000,000 generalized national statistical boundary product (not the city-scale survey boundary). It is not a neighborhood/district layer.",
          "integration_status": "integrated", "record_count": 4, "sha256": boundaries_sha},
         {"id": "hsl-gtfs-stops", "dataset_name": "HSL public transport static GTFS feed — boarding stops", "provider": "Helsinki Region Transport (HSL)",
-         "url": "https://www.hsl.fi/en/hsl/open-data", "resource_url": HSL_GTFS_URL, "consulted_at": consulted_at,
+         "url": "https://www.hsl.fi/en/hsl/open-data", "resource_url": HSL_GTFS_URL, "consulted_at": dates["stops"],
          "period_covered": f"GTFS validity {counts['service_period_start']}–{counts['service_period_end']}; feed version {counts['feed_version']}",
          "geographic_coverage": "HSL source network; map subset within four core municipal polygons", "license": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
          "evidence_type": "observed", "confidence": "high", "transformation": "Extracted stops.txt and feed_info.txt only from HSL GTFS ZIP; retained GTFS location_type=0 boarding points inside the four municipal polygons; converted coordinates to GeoJSON longitude/latitude.",
@@ -275,7 +287,7 @@ def source_registry(consulted_at: str, boundaries_sha: str, stops_sha: str, coun
          "counts_by_municipality": counts["stops_by_municipality"]},
         {"id": "hsl-gtfs-realtime-vehicles", "dataset_name": "HSL GTFS-Realtime vehicle positions", "provider": "Helsinki Region Transport (HSL)",
          "url": "https://hsldevcom.github.io/gtfs_rt/", "resource_url": "https://realtime.hsl.fi/realtime/vehicle-positions/v2/hsl",
-         "consulted_at": consulted_at, "period_covered": "Live feed; feed timestamp returned with each response",
+         "consulted_at": dates["realtime"], "period_covered": "Live feed; feed timestamp returned with each response",
          "geographic_coverage": "HSL region; client filters visible positions to the four municipal polygons",
          "license": "Creative Commons Attribution 4.0 International (HSL open-data terms)", "evidence_type": "observed", "confidence": "high",
          "transformation": "Serverless same-origin proxy fetches the official GTFS-RT protobuf feed, decodes VehiclePosition entities and caches responses for 5 seconds.",
@@ -286,15 +298,15 @@ def source_registry(consulted_at: str, boundaries_sha: str, stops_sha: str, coun
          "last_server_probe": probe_summary},
         {"id": "helsinki-3d-model", "dataset_name": "Helsinki 3D Urban Data Model and 3D Mesh", "provider": "City of Helsinki, City Survey Services",
          "url": "https://www.hel.fi/en/decision-making/information-on-helsinki/maps-and-geospatial-data/helsinki-3d",
-         "resource_url": "https://kartta.hel.fi/3d/", "consulted_at": consulted_at,
+         "resource_url": "https://kartta.hel.fi/3d/", "consulted_at": "2026-09-28",
          "period_covered": "City model updated by Helsinki; viewer exposes model vintage, not a live operational feed",
          "geographic_coverage": "Helsinki municipality only; not Espoo, Vantaa or Kauniainen",
          "license": "Creative Commons Attribution 4.0 International (CC BY 4.0)", "evidence_type": "observed", "confidence": "high",
-         "transformation": "Official City of Helsinki 3D viewer embedded as a streamed external viewer; no model is copied or rehosted by this app.",
-         "limitations": "The 3D model covers Helsinki only. The official viewer is a separate external application and may be unavailable. Local building feature selection and CityGML/3D Tiles ingestion are pending. The separate WFS query timed out during this phase.",
-         "integration_status": "integrated", "record_count": None},
+         "transformation": "None. The app no longer embeds this viewer; its 3D view extrudes Paavo postal areas instead.",
+         "limitations": "Discarded on 2026-11-03 after the 2026-10-26 front replacement: not used by the app. The viewer covers Helsinki only and timed out from Colombia. The separate WFS query also timed out.",
+         "integration_status": "discarded", "record_count": None},
         {"id": "helsinki-service-map", "dataset_name": "Helsinki Service Map API v4 units and accessibility", "provider": "City of Helsinki", "url": "https://www.hel.fi/palvelukarttaws/restpages/ver4.html",
-         "resource_url": "https://www.hel.fi/palvelukarttaws/rest/v4/unit/", "consulted_at": consulted_at,
+         "resource_url": "https://www.hel.fi/palvelukarttaws/rest/v4/unit/", "consulted_at": "2026-09-21",
          "period_covered": "Current API response; source does not declare a statistical period",
          "geographic_coverage": "API includes Helsinki, Espoo, Vantaa and Kauniainen", "license": "Unknown for redistribution through this application",
          "evidence_type": "declared", "confidence": "medium", "transformation": "No records ingested; API documented as a candidate for public services and unit accessibility.",
@@ -302,14 +314,14 @@ def source_registry(consulted_at: str, boundaries_sha: str, stops_sha: str, coun
          "integration_status": "candidate", "record_count": None},
         {"id": "osm-basemap", "dataset_name": "OpenStreetMap raster tile basemap", "provider": "OpenStreetMap contributors / OpenStreetMap Foundation",
          "url": "https://www.openstreetmap.org/copyright", "resource_url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-         "consulted_at": consulted_at, "period_covered": "Tiles requested for current visible map extent", "geographic_coverage": "Global raster coverage",
+         "consulted_at": "2026-09-28", "period_covered": "Tiles requested for current visible map extent", "geographic_coverage": "Global raster coverage",
          "license": "Open Database License (ODbL); attribution required", "evidence_type": "observed", "confidence": "high",
-         "transformation": "Requested dynamically by MapLibre for the visible viewport; not stored in the repository.",
-         "limitations": "Best-effort public tile service with no SLA. Keep visible attribution and follow the tile usage policy; production scale may require another provider.",
-         "integration_status": "integrated", "record_count": None},
+         "transformation": "None. The app no longer requests these tiles; its maps draw only lake data, without a basemap.",
+         "limitations": "Discarded on 2026-11-03 after the 2026-10-26 front replacement: not used by the app, and no figure ever came from it.",
+         "integration_status": "discarded", "record_count": None},
         {"id": "osm-building-footprints", "dataset_name": "OpenStreetMap building footprints — central Helsinki candidate", "provider": "OpenStreetMap contributors",
          "url": "https://www.openstreetmap.org/copyright", "resource_url": "https://overpass.private.coffee/api/interpreter",
-         "consulted_at": consulted_at, "period_covered": "Snapshot request failed; no building features ingested",
+         "consulted_at": "2026-09-21", "period_covered": "Snapshot request failed; no building features ingested",
          "geographic_coverage": "Requested Helsinki core bounding box 24.90–24.98 E, 60.16–60.19 N",
          "license": "Open Database License (ODbL); attribution and share-alike apply to database derivatives",
          "evidence_type": "observed", "confidence": "low", "transformation": "None; request timed out without a response.",

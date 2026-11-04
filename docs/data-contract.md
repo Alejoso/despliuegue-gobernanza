@@ -22,7 +22,7 @@ API geometry is EPSG:4326. Vercel caches stop snapshots for one hour and live re
 
 ## Evidence and status vocabulary
 
-Evidence: `observed`, `derived`, `estimated`, `modelled`, `proxy`, `declared`. Integration states: `integrated`, `candidate`, `failed`, `not_available`, `pending_integration`, `partial_coverage`, `stale`, `unavailable`. `integrated` means an actual product path exists; it does not imply real-time freshness. Each displayed aggregate should point to a registry dataset and expose its transformation and limitations.
+Evidence: `observed`, `derived`, `estimated`, `modelled`, `proxy`, `declared`. Integration states: `integrated`, `candidate`, `discarded`, `failed`, `not_available`, `pending_integration`, `partial_coverage`, `stale`, `unavailable`. `integrated` means an actual product path exists; it does not imply real-time freshness. Each displayed aggregate should point to a registry dataset and expose its transformation and limitations.
 
 ## PostGIS mapping
 

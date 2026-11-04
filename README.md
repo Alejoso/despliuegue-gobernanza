@@ -11,7 +11,7 @@ npm install
 npm run dev
 ```
 
-Vite serves the frontend, checked-in `/public/data` snapshots and a same-origin middleware that runs the exact `/api/*` handlers on the Node dev server. If Node can reach HSL, the local app displays the live feed; network errors and timeouts remain explicit. Vercel runs the same handlers in deployment. Static stops fall back to a viewport-filtered snapshot. OpenStreetMap tiles require a browser connection and retain visible attribution.
+Vite serves the frontend, checked-in `/public/data` snapshots and a same-origin middleware that runs the exact `/api/*` handlers on the Node dev server. If Node can reach HSL, the local app displays the live feed; network errors and timeouts remain explicit. Vercel runs the same handlers in deployment. Static stops fall back to a viewport-filtered snapshot.
 
 ## Reproducible data update
 
@@ -31,14 +31,13 @@ Statistics Finland WFS ─┐
 HSL daily GTFS ZIP ──────┴→ etl/helsinki/run.py → validated raw tables → normalized GeoJSON + lineage
 HSL GTFS-Realtime ─────────→ api/live-mobility.js (Vercel proxy, 5s cache) → MapLibre live layer
 Versioned GeoJSON ─────────→ api/stops.js (bbox filter, 1h cache) → MapLibre clustered stop layer
-Helsinki official 3D viewer ───────────────────────────────────→ embedded streamed model (Helsinki only)
 ```
 
 Static files are the current storage adapter. `schema/postgis.sql` defines a Postgres/PostGIS target with source snapshots, spatial entities, observations and realtime event tables. See [architecture](docs/architecture.md), [source catalogue](docs/data-sources.md), [data contract](docs/data-contract.md), [quality](docs/data-quality.md), [licensing](docs/licensing.md), [methodology](docs/methodology.md), and [limitations](docs/limitations.md).
 
 ## Implemented and pending
 
-Implemented: Helsinki product identity; responsive perspective navigation; MapLibre, OSM basemap and attribution; official Statistics Finland boundaries; 6,027 HSL boarding-stop records within the four municipalities; municipality and layer filters; stop clustering, popups, bbox retrieval and source lineage; source registry, update report and tests; Vercel same-origin proxies; official Helsinki 3D viewer embed.
+Implemented: Helsinki product identity; responsive perspective navigation; MapLibre without basemap tiles; official Statistics Finland boundaries; 6,027 HSL boarding-stop records within the four municipalities; municipality and layer filters; stop clustering, popups, bbox retrieval and source lineage; source registry, update report and tests; Vercel same-origin proxies.
 
 Pending: local building geometry and selectable 3D features; reliable live-feed response verification in a deployed runtime; HSL alerts, arrivals and route visualization; public service records pending response/license validation; climate, energy, housing, population, research and innovation datasets; hosted PostGIS and scheduled ETL. These sections communicate their integration status instead of showing empty-looking fake indicators.
 

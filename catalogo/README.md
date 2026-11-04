@@ -13,7 +13,7 @@ python3 -m etl.helsinki.probe_candidates --overture
 [`docs/catalogo-fuentes.md`](../docs/catalogo-fuentes.md) (versión para máquina: [`docs/catalogo/fuentes.json`](../docs/catalogo/fuentes.json)).
 Ese índice incluye las fuentes de la fase anterior, las caídas y las descartadas, enlaza a estas fichas y registra en su §7 cómo se concilió cada diferencia.
 
-**Nada de lo de abajo está integrado en el lago todavía.** Son candidatas probadas el 2026-09-21.
+**Son candidatas probadas el 2026-09-21; de esta lista, solo Paavo está integrada en el lago** (desde el 2026-10-27).
 
 ## Semáforo
 
@@ -22,7 +22,7 @@ Ese índice incluye las fuentes de la fase anterior, las caídas y las descartad
 
 | Ficha | Familia | Estado | Semáforo | Para qué |
 |---|---|---|---|---|
-| [sf-paavo-2026](sf-paavo-2026.md) | Estadística oficial | probada OK | 🟢 | densidad, ingresos, educación, vivienda por código postal |
+| [sf-paavo-2026](sf-paavo-2026.md) | Estadística oficial | **integrada** | 🟢 | densidad, ingresos, educación, vivienda por código postal |
 | [sf-vaestoruutu-1km-2025](sf-vaestoruutu-1km-2025.md) | Estadística oficial | probada OK | 🟢 | densidad en rejilla 1 km |
 | [statfin-ashi-13mu](statfin-ashi-13mu.md) | Estadística oficial | metadatos OK | 🟢 | precio de vivienda por código postal |
 | [hsy-vaestotietoruudukko-2025](hsy-vaestotietoruudukko-2025.md) | Ambiental / regional | probada OK | 🟢 | densidad en rejilla 250 m |

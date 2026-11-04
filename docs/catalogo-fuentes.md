@@ -12,7 +12,7 @@ Este es el **índice único** del catálogo. Une dos rastreos que se hicieron en
 Las 12 fuentes que aparecían en los dos rastreos se conciliaron. Cada diferencia quedó anotada en la §7. La columna **Ficha** enlaza la ficha detallada de `catalogo/` cuando existe.
 
 - **Resultado:** 63 fuentes en 7 familias (territorio, población, economía, movilidad, ambiente, servicios, catálogos): **5 integradas · 25 candidatas · 8 condicionadas · 6 caídas · 17 descartadas · 2 no existen para la ciudad**.
-- **Actualización 2026-10-27:** `stat-fi-postal-areas-paavo` (Paavo 2026) y `statfin-population-11ra` pasaron de candidatas a **integradas**: ahora son **7 integradas · 23 candidatas**. El detalle de ETL, verificación y correcciones está en [`registro-integracion.md`](registro-integracion.md). Las filas de abajo conservan el resultado de la prueba del 09-28.
+- **Actualización 2026-11-03:** Paavo 2026 y StatFin 11ra pasaron a integradas el 2026-10-27, y las teselas OSM y el visor 3D a descartadas porque el front actual no los usa. Hoy son **5 integradas · 23 candidatas · 8 condicionadas · 6 caídas · 19 descartadas · 2 no existen para la ciudad**. Detalle en [`registro-integracion.md`](registro-integracion.md).
 - **Versión para máquina:** [catalogo/fuentes.json](catalogo/fuentes.json). Trae los mismos campos, `ficha_catalogo`, el recurso probado (`prueba`) y el resultado observado (`ultima_prueba`). Si se cambia una fuente, hay que actualizar este documento, el JSON y la ficha de `catalogo/` si la tiene.
 - **Regla:** ninguna fuente entra al catálogo solo porque la IA la propuso. Si no se abrió o no respondió, figura como caída con su error exacto. Si la licencia no se leyó en la fuente, dice **por verificar**.
 
@@ -50,15 +50,13 @@ Para ser **candidata**, una fuente debe cumplir los ocho criterios. Si incumple 
 | Límites municipales 2025 `kunta1000k_2025` | Statistics Finland | CC BY 4.0 ([términos](https://stat.fi/en/about-us/get-to-know-statistics-finland/legislation/terms-of-use)) | No | 200 · 4 polígonos | 🟢 Generalización 1:1.000.000; no sirve para barrios |
 | HSL GTFS estático ([hsl.zip](https://infopalvelut.storage.hsldev.com/gtfs/hsl.zip)) | HSL | CC BY 4.0 ([HSL Open Data](https://www.hsl.fi/en/hsl/open-data)) | No | 200 · 81 MB · Last-Modified 2026-09-26 | 🟢 |
 | HSL GTFS-Realtime ([vehicle-positions](https://realtime.hsl.fi/realtime/vehicle-positions/v2/hsl)) | HSL | CC BY 4.0 | No (vehículos) | 200 | 🟢 |
-| Teselas OpenStreetMap | Colaboradores de OSM | ODbL 1.0 ([copyright](https://www.openstreetmap.org/copyright)) | No | 200 | 🟢 Solo fondo; ninguna cifra sale de aquí |
-| Visor 3D de Helsinki ([kartta.hel.fi/3d](https://kartta.hel.fi/3d/)) | Ciudad de Helsinki | CC BY 4.0 ([página del modelo](https://www.hel.fi/en/decision-making/information-on-helsinki/maps-and-geospatial-data/helsinki-3d)) | No | **Timeout a los 30 s** | 🟡 **Puede no cargar en la presentación** (ver §5) |
+| StatFin 11ra: población por municipio ([PxWeb](https://pxdata.stat.fi/PxWeb/api/v1/en/StatFin/vaerak/11ra.px)) | Statistics Finland | CC BY 4.0 | Agregados municipales | 200 · 31-12-2025 | 🟢 Integrada el 2026-10-27 |
+| Paavo 2026 `pno_tilasto_2026` (WFS; [ficha](../catalogo/sf-paavo-2026.md)) | Statistics Finland | CC BY 4.0 | Agregados por área postal | 200 · 167 áreas | 🟢 Integrada el 2026-10-27; año de referencia 2024 |
 
 ### 2.2 Candidatas
 
 | Fuente | Familia | Productor | Licencia | Prueba (fecha · resultado) | Para qué sirve / nota | Ficha |
 | --- | --- | --- | --- | --- | --- | --- |
-| StatFin 11ra: población por municipio ([PxWeb](https://pxdata.stat.fi/PxWeb/api/v1/en/StatFin/vaerak/11ra.px)) | población | Statistics Finland | CC BY 4.0 | 09-28 · Helsinki 694.392 · Espoo 325.716 · Vantaa 252.956 · Kauniainen 10.318 (31-12-2025; tabla actualizada 2026-05-29) | **Cifra oficial de población**; denominador de cualquier tasa | — |
-| Paavo 2026 `pno_tilasto_2026` (WFS) | territorio | Statistics Finland | CC BY 4.0 | 09-28 · 167 áreas postales, `vuosi` 2026 | Escala intraurbana común a los cuatro municipios: densidad, ingreso, educación, vivienda | [sf-paavo-2026](../catalogo/sf-paavo-2026.md) |
 | Paavo por código postal ([PxWeb](https://pxdata.stat.fi/PxWeb/api/v1/en/Postinumeroalueittainen_avoin_tieto/uusin)) | población | Statistics Finland | CC BY 4.0 | 09-28 · 10 tablas, 2010–2024 | Serie histórica; es la otra vía hacia el mismo dato de la WFS | — |
 | Rejilla de población 1 km `vaki2025_1km` | territorio | Statistics Finland | CC BY 4.0 | 09-28 · 749 celdas en los 4 municipios | Densidad. Centinela `-1` | [sf-vaestoruutu-1km-2025](../catalogo/sf-vaestoruutu-1km-2025.md) |
 | Precio de vivienda usada por código postal (StatFin 13mu) | economía | Statistics Finland | CC BY 4.0 | 09-21 · 200 (solo metadatos) | Costo de vivienda (reemplaza a Numbeo); falta consultar los datos | [statfin-ashi-13mu](../catalogo/statfin-ashi-13mu.md) |
@@ -115,6 +113,8 @@ Para ser **candidata**, una fuente debe cumplir los ocho criterios. Si incumple 
 
 | Fuente | Prueba | Criterio | Razón de rechazo | Ficha |
 | --- | --- | --- | --- | --- |
+| Teselas OpenStreetMap | 09-28 · 200 | Sin uso | Solo eran fondo y ninguna cifra salía de aquí. Licencia ODbL. Desde el 2026-10-26 los mapas se dibujan sin teselas | — |
+| Visor 3D de Helsinki ([kartta.hel.fi/3d](https://kartta.hel.fi/3d/)) | 09-28 · timeout a los 30 s | Sin uso | No cargaba desde Colombia y solo cubre Helsinki. Desde el 2026-10-26 el 3D sale de extruir las áreas de Paavo | — |
 | Wikidata, población de Helsinki (Q1757) | 09-28 · 694.392 al 2025-12-31 | C1 | Coincide con StatFin porque lo copia. Cualquiera puede editarlo y nadie responde por él. Si coincide, sobra; si no coincide, está mal | — |
 | Numbeo, costo de vida | 09-28 · 200 (HTML) | C1, C2, C3, C8 | Crowdsourcing sin método. Sus [términos](https://www.numbeo.com/common/terms_of_use.jsp) prohíben el scraping y la reutilización comercial, y la API es paga. Para costo de vivienda: StatFin 13mu | — |
 | Open-Meteo | 09-28 · 200 | C1 | Intermediario que entrega salidas de modelo, no observaciones. Sus términos no dicen qué fuente usa para Finlandia, y la API gratuita es solo para uso no comercial. FMI está abierta y sin llave | — |
@@ -157,7 +157,7 @@ Ninguno de estos valores puede llegar al mapa como número.
 
 ## 5. Hallazgos que afectan al sistema
 
-1. **Puede que el visor 3D no cargue en la presentación.** `kartta.hel.fi` no respondió desde Colombia en ninguna de las dos fases, y es el host del iframe de la vista 3D. Hay que probarlo en el teléfono y en la red de la universidad. Si falla, conviene enlazarlo en vez de embeberlo.
+1. **Resuelto el 2026-11-03: el visor 3D ya no se usa.** `kartta.hel.fi` no respondió desde Colombia en ninguna de las dos fases; el front actual ya no lo embebe.
 2. **El User-Agent decide el acceso a HRI y avoindata.** Responden 403 a un User-Agent descriptivo y a uno de navegador, pero 200 al de curl. El grupo debe decidir cuál usa y dejarlo escrito.
 3. **Un HTTP 200 no significa que funcione.** SYKE responde 200 con un error dentro. La ingesta y la verificación deben revisar el contenido.
 4. **La población oficial es una sola: StatFin.** Da 694.392 habitantes para Helsinki al 31-12-2025. Eurostat da 674.500 para 2024, y Wikidata copia la cifra de StatFin.

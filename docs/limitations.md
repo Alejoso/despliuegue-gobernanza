@@ -10,7 +10,7 @@ Statistics Finland boundaries are generalized to 1:1,000,000 and are not distric
 
 The documented HSL raw GTFS-Realtime endpoint was queried through the actual proxy with Node: HTTP 200, `application/x-protobuf`, GTFS-RT v2.0 and 360 real VehiclePosition entities with valid coordinates in the latest recorded probe. The registry records that observation and does not imply constant availability. Vite runs the same handler through its development middleware. The Vercel function is not deployed from this workspace, so production runtime execution and cache headers still need a deployed check. No scheduled positions are labelled live.
 
-The official Helsinki 3D viewer is embedded as a remote viewer. It covers Helsinki only and may be unavailable independently of this app. The viewer is not a local, selectable city model; local CityGML/3D Tiles, building identifiers/heights and terrain are pending. Espoo, Vantaa and Kauniainen do not inherit Helsinki's model coverage.
+The official Helsinki 3D viewer is no longer used. The 3D view extrudes Paavo postal areas, so its height encodes a statistic, not buildings. Local building geometry and heights are pending.
 
 ## Failed and pending sources
 

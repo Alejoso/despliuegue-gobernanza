@@ -1,0 +1,9 @@
+{
+  "source_id": "fi-municipal-boundaries",
+  "url": "see BOUNDARY_URL in etl/helsinki/run.py",
+  "retrieved_at": "2026-09-21",
+  "raw_file": "data/raw/municipalities.geojson",
+  "bytes": 40829,
+  "sha256": "d22591423195b78bdc115dd1c0352412caeef517033bc173baf3fe769352afea",
+  "note": "Backfilled on 2026-11-03 from the date recorded in public/data/sources.json at commit 41e5de2; the time was not recorded. --refresh overwrites this file."
+}

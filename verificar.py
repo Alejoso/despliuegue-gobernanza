@@ -123,6 +123,13 @@ def verificar_registro(lago: Path, v: Verificacion) -> None:
     if not registro:
         return
     por_id = {s["id"]: s for s in registro["sources"]}
+    # La fecha de prueba es la de la descarga real, nunca la del día en que corrió el ETL.
+    metadatos = Path(__file__).resolve().parent / "data/metadata"
+    for fuente, archivo in (("fi-municipal-boundaries", "fi-municipal-boundaries.json"), ("hsl-gtfs-stops", "hsl_gtfs_archive.json"), ("hsl-gtfs-realtime-vehicles", "hsl_gtfsrt_probe.json"),
+                            ("stat-fi-postal-areas-paavo", "stat-fi-postal-areas-paavo.json"), ("statfin-population-11ra", "statfin-population-11ra.json")):
+        descarga = json.loads((metadatos / archivo).read_text(encoding="utf-8"))["retrieved_at"][:10]
+        anotada = por_id.get(fuente, {}).get("consulted_at")
+        v.comprobar(anotada == descarga, f"sources.json: {fuente} dice probado {anotada}, pero se descargó el {descarga}")
     for archivo, fuente in (("postal_areas.geojson", "stat-fi-postal-areas-paavo"), ("population.json", "statfin-population-11ra")):
         if (lago / archivo).exists():
             entrada = por_id.get(fuente)
