@@ -72,11 +72,10 @@ export function Mapa({ municipios, color = '--salvia', colorFuerte = '--salvia-f
         map.getCanvas().style.cursor = 'pointer'
         callbacks.current.onResaltado?.(codigo)
       })
+      // Al sacar el cursor el municipio sigue resaltado hasta que se pase por otro: solo se reinicia `encima` para poder volver a marcarlo.
       map.on('mouseleave', 'municipios-relleno', () => {
-        marcar(encima, { resaltado: false })
         encima = null
         map.getCanvas().style.cursor = ''
-        callbacks.current.onResaltado?.(null)
       })
       map.on('click', 'municipios-relleno', evento => callbacks.current.onSeleccion?.(evento.features?.[0]?.id))
       setListo(true)
@@ -208,11 +207,10 @@ export function MapaAreas({ areas, municipios, valor, escala, tresD = false, sel
         map.getCanvas().style.cursor = 'pointer'
         callbacks.current.onResaltado?.(codigo)
       })
+      // Al sacar el cursor el área sigue resaltada hasta que se pase por otra: solo se reinicia `encima` para poder volver a marcarla.
       map.on('mouseleave', 'areas-relleno', () => {
-        if (encima) map.setFeatureState({ source: 'areas', id: encima }, { resaltado: false })
         encima = null
         map.getCanvas().style.cursor = ''
-        callbacks.current.onResaltado?.(null)
       })
       map.on('click', 'areas-relleno', evento => callbacks.current.onElegir?.(evento.features?.[0]?.id))
       setListo(true)

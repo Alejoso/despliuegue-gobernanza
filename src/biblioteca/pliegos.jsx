@@ -68,6 +68,9 @@ const ESQUEMAS = {
   dispersion: <g><path d="M40 40v200h280" className="es-linea" />{Array.from({ length: 34 }, (_, i) => <circle key={i} cx={60 + (i * 53) % 250} cy={220 - ((i * 29) % 150) - (i % 3) * 8} r="5" className="es-medio" />)}</g>,
   barras: <g>{[250, 200, 170, 120, 90, 60].map((w, i) => <rect key={i} x="40" y={50 + i * 34} width={w} height="16" className="es-medio" />)}</g>,
   columnas: <g>{[[70, 70], [100, 120], [130, 60], [160, 150], [190, 90], [220, 40], [250, 110], [280, 70]].map(([x, h], i) => <g key={i}><rect x={x} y={220 - h} width="16" height={h} className="es-medio" /><path d={`M${x + 16} ${220 - h}l8 -6v${h}l-8 6z`} className="es-oscuro" /></g>)}<path d="M50 222h270" className="es-linea" /></g>,
+  obra: <g><rect x="70" y="40" width="220" height="170" className="es-claro" strokeDasharray="8 6" /><path d="M96 78h110M96 104h150M96 130h90" className="es-linea" /><path d="M60 226h240" className="es-linea grueso" />
+    {[0, 1, 2, 3, 4, 5, 6, 7].map(i => <path key={i} d={`M${64 + i * 30} 238l14 -12h14l-14 12z`} className="es-oscuro" />)}
+    <path d="M236 176l44 -44l14 14l-44 44l-18 4z" className="es-medio" /><path d="M280 132l8 -8l14 14l-8 8z" className="es-oscuro" /></g>,
   cortina: <g><rect x="40" y="40" width="140" height="200" className="es-claro" /><rect x="180" y="40" width="140" height="200" className="es-medio" /><path d="M180 30v220" className="es-linea grueso" /><circle cx="180" cy="140" r="12" className="es-oscuro" /></g>,
 }
 
@@ -102,14 +105,14 @@ export function Hueco({ libro, indice, pliego }) {
   const { registro } = useContext(Notas)
   const conFicha = pliego.candidatas.filter(candidata => candidata.id)
   return <Pliego libro={libro} indice={indice} titulo={pliego.titulo} notas={conFicha.map(candidata => ({ fuente: candidata.id }))}
-    figura={<Placa libro={libro} gris trama rotulo="Hueco declarado"><p className="placa-grande">Esta página se deja en blanco a propósito.</p></Placa>}>
+    figura={<Placa libro={libro} gris rotulo="Trabajo en progreso · limitación reconocida"><Esquema tipo="obra" /><p className="placa-grande">No encontramos información.</p><p className="placa-nota">Esta página queda en obra: no se llena con cifras que no existen.</p></Placa>}>
     <p className="entrada">{pliego.porque}</p>
     <ul className="candidatas">{pliego.candidatas.map(candidata => {
       const datos = candidata.id ? ficha(candidata.id, registro) : null
       const n = candidata.id ? conFicha.indexOf(candidata) + 1 : null
       return <li key={candidata.id || candidata.nombre}>
         <span className="candidata-nombre">{datos?.nombre || candidata.nombre}{n && <Ref n={n} />}</span>
-        <span className={`insignia ${datos ? datos.estado : 'sin-sondear'}`}>{datos ? ETIQUETA_ESTADO[datos.estado] || datos.estado : 'Sin sondear'}</span>
+        <span className={`insignia ${datos ? datos.estado : 'sin-sondear'}`}>{datos ? ETIQUETA_ESTADO[datos.estado] || datos.estado : 'Sin información encontrada'}</span>
         <span className="candidata-nota">{candidata.nota}</span>
       </li>
     })}</ul>
@@ -282,6 +285,37 @@ export function NoMostramos({ libro, indice, pliego }) {
 
 export const VISTAS = { municipios: Municipios, paradas: Paradas, limites: Limites, catalogo: Catalogo, fichas: Fichas, noMostramos: NoMostramos }
 
+// Las fuentes descartadas o de semáforo rojo piden una clave antes de abrir su enlace.
+// Es una fricción para no llegar por descuido, no una protección: el enlace y el hash viajan en el JavaScript de la página.
+const HASH_CLAVE = '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4'
+export const esProtegida = datos => datos.estado === 'descartada' || datos.semaforo === 'rojo'
+
+async function hashDe(texto) {
+  const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(texto))
+  return [...new Uint8Array(bytes)].map(byte => byte.toString(16).padStart(2, '0')).join('')
+}
+
+function EnlaceProtegido({ url }) {
+  const [abierto, setAbierto] = useState(false)
+  const [clave, setClave] = useState('')
+  const [error, setError] = useState(null)
+  async function enviar(evento) {
+    evento.preventDefault()
+    try {
+      if (await hashDe(clave) !== HASH_CLAVE) { setError('Clave incorrecta.'); return }
+    } catch { setError('Este navegador no permite comprobar la clave aquí.'); return }
+    setError(null); setClave(''); setAbierto(false)
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }
+  if (!abierto) return <button type="button" className="enlace" onClick={() => setAbierto(true)}>Abrir la fuente original (pide clave)</button>
+  return <form className="clave" onSubmit={enviar}>
+    <p>Esta fuente se descartó o puede traer datos de personas. Escribe la clave para abrir su enlace.</p>
+    <label>Clave<input type="password" value={clave} onChange={evento => { setClave(evento.target.value); setError(null) }} autoFocus autoComplete="off" /></label>
+    {error && <p className="errata" role="alert">{error}</p>}
+    <div className="clave-acciones"><button type="submit" className="enlace">Abrir</button><button type="button" className="enlace" onClick={() => { setAbierto(false); setClave(''); setError(null) }}>Cancelar</button></div>
+  </form>
+}
+
 export function FichaFuente({ id, registro, onCerrar }) {
   const datos = ficha(id, registro)
   return <aside className="cajon-ficha" role="dialog" aria-modal="false" aria-labelledby="ficha-titulo">
@@ -300,7 +334,9 @@ export function FichaFuente({ id, registro, onCerrar }) {
         {datos.limites && <><dt>Límites</dt><dd>{datos.limites}</dd></>}
         <dt>Ficha</dt><dd><code>{datos.catalogo}</code></dd>
       </dl>
-      {datos.documentacion && <a className="enlace" href={datos.documentacion} target="_blank" rel="noreferrer">Abrir la fuente original</a>}
+      {datos.documentacion && (esProtegida(datos)
+        ? <EnlaceProtegido url={datos.documentacion} />
+        : <a className="enlace" href={datos.documentacion} target="_blank" rel="noreferrer">Abrir la fuente original</a>)}
     </> : <p>No hay ficha para «{id}» en ningún catálogo.</p>}
   </aside>
 }
